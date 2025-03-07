@@ -13,7 +13,16 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     apt update && apt install -y nginx
   SHELL
-  
+
+  # Provisioning: Generate Self-Signed SSL Certificate
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo mkdir -p /etc/nginx/ssl
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/nginx-selfsigned.key \
+        -out /etc/nginx/ssl/nginx-selfsigned.crt \
+        -subj "/C=US/ST=State/L=City/O=Company/OU=Org/CN=anindhito.ui.infra.local"
+  SHELL
+
   # Provisioning: Configure Reverse Proxy
   config.vm.provision "shell", inline: <<-SHELL
     cat <<EOF > /etc/nginx/sites-available/reverse-proxy
