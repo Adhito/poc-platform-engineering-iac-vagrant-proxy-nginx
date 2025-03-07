@@ -9,35 +9,70 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2         # 2 vCPUs
   end
 
-  # Provisioning: Install NGINX and configure reverse proxy
+  # Provisioning: Install NGINX
   config.vm.provision "shell", inline: <<-SHELL
     apt update && apt install -y nginx
+  SHELL
+
+  # Provisioning: Generate Self-Signed SSL Certificate
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo mkdir -p /etc/nginx/ssl
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/nginx-selfsigned.key \
+        -out /etc/nginx/ssl/nginx-selfsigned.crt \
+        -subj "/C=US/ST=State/L=City/O=Company/OU=Org/CN=anindhito.ui.infra.local"
+  SHELL
+
+  # Provisioning: Configure Reverse Proxy
+  config.vm.provision "shell", inline: <<-SHELL
     cat <<EOF > /etc/nginx/sites-available/reverse-proxy
     server {
-        listen 80;
+        listen 443 ssl;
         server_name anindhito.ui.infra.k8sdashboard.local;
+        ssl_certificate /etc/nginx/ssl/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx-selfsigned.key;
         location / {
             proxy_pass https://192.168.56.10:30001;
         }
     }
 
     server {
-        listen 80;
+        listen 443 ssl;
         server_name anindhito.ui.infra.argocd.local;
+        ssl_certificate /etc/nginx/ssl/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx-selfsigned.key;
         location / {
             proxy_pass https://192.168.56.10:30002;
         }
     }
 
     server {
-        listen 80;
-        server_name anindhito.ui.infra.pgadmin.local;
+        listen 443 ssl;
+        server_name anindhito.ui.infra.javaapp.local;
+        ssl_certificate /etc/nginx/ssl/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx-selfsigned.key;
         location / {
-            proxy_pass http://192.168.56.10:5050;
+            proxy_pass http://192.168.56.10:8080;
         }
     }
+
+    server {
+        listen 443 ssl;
+        server_name anindhito.ui.infra.pgadmin.local;
+        ssl_certificate /etc/nginx/ssl/nginx-selfsigned.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx-selfsigned.key;
+        location / {
+            proxy_pass http://192.168.56.10:30002;
+        }
+    }
+
+    server {
+        listen 80;
+        server_name anindhito.ui.infra.k8sdashboard.local anindhito.ui.infra.argocd.local anindhito.ui.infra.javaapp.local anindhito.ui.infra.pgadmin.local;
+        return 301 https://$host$request_uri;
+    }
 EOF
-SHELL
+  SHELL
 
   # Provisioning: Enable NGINX reverse proxy and reload
   config.vm.provision "shell", inline: <<-SHELL
