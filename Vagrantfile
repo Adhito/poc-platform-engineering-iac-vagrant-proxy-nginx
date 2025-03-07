@@ -9,9 +9,13 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2         # 2 vCPUs
   end
 
-  # Provisioning: Install NGINX and configure reverse proxy
+  # Provisioning: Install NGINX
   config.vm.provision "shell", inline: <<-SHELL
     apt update && apt install -y nginx
+  SHELL
+  
+  # Provisioning: Install NGINX and configure reverse proxy
+  config.vm.provision "shell", inline: <<-SHELL
     cat <<EOF > /etc/nginx/sites-available/reverse-proxy
     server {
         listen 80;
