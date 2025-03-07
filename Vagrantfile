@@ -1,12 +1,14 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"  # Ubuntu 22.04 LTS
-  config.vm.hostname = "nginx-proxy"
+  config.vm.hostname = "devproxynginx01"
   config.vm.network "private_network", ip: "192.168.56.20"
 
-  # Set CPU and Memory
+  ## Provisioning: Set CPU, RAM and Name
   config.vm.provider "virtualbox" do |vb|
+    vb.name = "DEVPROXYNGINX01"
     vb.memory = "4096"  # 4GB RAM
     vb.cpus = 2         # 2 vCPUs
+    vb.customize ["modifyvm", :id, "--groups", "/Development Proxy NGINX Vagrant"]
   end
 
   # Provisioning: Install NGINX
