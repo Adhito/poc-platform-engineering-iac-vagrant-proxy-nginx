@@ -36,10 +36,20 @@ Vagrant.configure("2") do |config|
             proxy_pass http://192.168.56.10:5050;
         }
     }
-
-    systemctl start nginx
-    nginx -t && systemctl reload nginx
 EOF
 SHELL
 
+  # Provisioning: Enable NGINX reverse proxy and reload
+  config.vm.provision "shell", inline: <<-SHELL
+    if [ ! -L /etc/nginx/sites-enabled/reverse-proxy ]; then
+        ln -s /etc/nginx/sites-available/reverse-proxy /etc/nginx/sites-enabled/
+    fi
+
+    if [ -f /etc/nginx/sites-enabled/default ]; then
+        rm /etc/nginx/sites-enabled/default
+    fi
+
+    systemctl start nginx
+    nginx -t && systemctl reload nginx
+  SHELL
 end
