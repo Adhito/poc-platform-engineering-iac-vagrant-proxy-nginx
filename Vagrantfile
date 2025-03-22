@@ -11,12 +11,12 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--groups", "/Development Proxy NGINX Vagrant"]
   end
 
-  # Provisioning: Install NGINX
+  ## Provisioning: Install NGINX
   config.vm.provision "shell", inline: <<-SHELL
     apt update && apt install -y nginx
   SHELL
 
-  # Provisioning: Generate Self-Signed SSL Certificate
+  ## Provisioning: Generate Self-Signed SSL Certificate
   config.vm.provision "shell", inline: <<-SHELL
     sudo mkdir -p /etc/nginx/ssl
     sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
         -subj "/C=US/ST=State/L=City/O=Company/OU=Org/CN=anindhito.ui.infra.local"
   SHELL
 
-  # Provisioning: Configure Reverse Proxy
+  ## Provisioning: Configure Reverse Proxy
   config.vm.provision "shell", inline: <<-SHELL
     cat <<EOF > /etc/nginx/sites-available/reverse-proxy
     server {
@@ -76,7 +76,7 @@ Vagrant.configure("2") do |config|
 EOF
   SHELL
 
-  # Provisioning: Enable NGINX reverse proxy and reload
+  ## Provisioning: Enable NGINX reverse proxy and reload
   config.vm.provision "shell", inline: <<-SHELL
     if [ ! -L /etc/nginx/sites-enabled/reverse-proxy ]; then
         ln -s /etc/nginx/sites-available/reverse-proxy /etc/nginx/sites-enabled/
