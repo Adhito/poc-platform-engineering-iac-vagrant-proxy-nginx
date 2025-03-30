@@ -8,6 +8,7 @@ Vagrant.configure("2") do |config|
     vb.name = "DEVPROXYNGINX01"
     vb.memory = "4096"  # 4GB RAM
     vb.cpus = 2         # 2 vCPUs
+    vb.gui = true       # Open VirtualBox UI/console automatically
     vb.customize ["modifyvm", :id, "--groups", "/Development Proxy NGINX Vagrant"]
   end
 
